@@ -39,7 +39,9 @@ class Referral < ActiveRecord::Base
   #TODO - testing for before_update
   before_update :check_notification, :if => :is_interested_changed?
   after_create :create_email
-  has_paper_trail
+  before_save :store_interest_update, :if => :is_pending_changed?
+  before_save :store_status_update, :if => :is_interested_changed?
+  has_paper_trail :meta => {:is_interested => :store_time}
   # before_save :check_email, :if => :referral_email_changed?
   # paginates_per 10
 
@@ -48,6 +50,13 @@ class Referral < ActiveRecord::Base
     Email.create(:referral_id => referral.id)
   end
 
+  def store_interest_update
+    self.last_interest_update = Time.now
+  end
+
+  def store_status_update
+    self.last_status_update = Time.now
+  end
 
   def check_notification
     referral = self
